@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/org.openl.rules-5.18.3.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/org.openl.j-5.18.3.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/org.openl.grammars-5.18.3.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/org.openl.core-5.18.3.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/org.openl.rules.constrainer-5.18.3.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/org.openl.commons-5.18.3.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/asm-4.2.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/cglib-3.1.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/cloning-1.9.0.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/commons-codec-1.10.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/objenesis-1.2.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/poi-3.12.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/poi-ooxml-3.12.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/poi-ooxml-schemas-3.12.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/xmlbeans-2.6.0.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/commons-collections4-4.0.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/commons-lang3-3.3.2.jar"/>
+	<classpathentry kind="lib" path="/Users/awiradarma/Documents/openl/openl-tablets-core-5/libs/slf4j-api-1.7.21.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
