@@ -20,12 +20,14 @@ public class OpenLRule {
 		return this;
 	}
 		
-	public Object execute(Object...objects ) {
+	public Object execute(Object...objects ) throws Throwable {
 		try {
+			//System.out.println(this.ruleFactory);
 			return this.rule.invoke(this.ruleFactory, objects);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
+			throw (e.getCause());
+			//return null;
 		}
 	}
 }
