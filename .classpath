@@ -21,5 +21,6 @@
 	<classpathentry kind="lib" path="/Users/andre/openl-tablets/openl-tablets-core-5.18.2/libs/slf4j-api-1.7.21.jar"/>
 	<classpathentry kind="lib" path="/Users/andre/openl-tablets/openl-tablets-core-5.18.2/libs/xmlbeans-2.6.0.jar"/>
 	<classpathentry kind="lib" path="/Users/andre/Downloads/slf4j-1.7.21/slf4j-simple-1.7.21.jar"/>
+	<classpathentry kind="lib" path="/Users/andre/openl-tablets/byte-buddy-1.5.7.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
