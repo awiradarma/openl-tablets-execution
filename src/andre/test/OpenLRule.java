@@ -20,7 +20,7 @@ public class OpenLRule {
 		this.ruleFactory = rulefactoryname;
 		return this;
 	}
-		
+	
 	public Object execute(Object...objects ) throws Throwable {
 		Object[] newArgs = null;
 		if (objects != null) { 

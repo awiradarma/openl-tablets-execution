@@ -80,33 +80,43 @@ public class ByteBuddyHelper {
 			Type t = null;
 			switch (entry.getValue()) {
 			case "String":
+			case "java.lang.String":	
 				t = String.class;
 				break;
 			case "Boolean":
+			case "java.lang.Boolean":	
 				t = Boolean.class;
 				break;
 			case "Date":
+			case "java.util.Date":	
 				t = Date.class;
 				break;
 			case "Double":
+			case "java.lang.Double":	
 				t = Double.class;
 				break;
 			case "Integer":
+			case "java.lang.Integer":
 				t = Integer.class;
 				break;
 			case "String[]":
+			case "java.lang.String[]":	
 				t = String[].class;
 				break;
 			case "Boolean[]":
+			case "java.lang.Boolean[]":	
 				t = Boolean[].class;
 				break;
 			case "Date[]":
+			case "java.util.Date[]":	
 				t = Date[].class;
 				break;
 			case "Double[]":
+			case "java.lang.Double[]":
 				t = Double[].class;
 				break;
 			case "Integer[]":
+			case "java.lang.Integer[]":
 				t = Integer[].class;
 				break;
 			default:
