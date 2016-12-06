@@ -3,6 +3,8 @@ package andre.test;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class ValueObject {
 	
@@ -11,6 +13,15 @@ public class ValueObject {
 	private HashMap<String, String> fields = new HashMap<String, String>();
 	
 	public ValueObject() {
+	}
+	
+	public ValueObject generateEmptyCopy() {
+		if (this.generatedObject == null) return null;
+		ValueObject copy = new ValueObject();
+		copy.className = this.className;
+		copy.fields = new HashMap<String, String>();
+		copy.fields.putAll(this.fields);
+		return copy;
 	}
 	
 	public ValueObject(Object o) {

@@ -62,6 +62,11 @@ public class ByteBuddyHelper {
 		return c.newInstance();
 	}
 	
+	public static Class<?> findClass(String className) {
+		if (generatedClasses.containsKey(className)) return generatedClasses.get(className);
+		return null;
+	}
+	
 	public static Class<?> generateClass(String className, Map<String, String> m) {
 		if (generatedClasses.containsKey(className)) return generatedClasses.get(className);
 		

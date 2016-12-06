@@ -1,10 +1,11 @@
 package andre.test;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Date;
 
-import org.openl.generated.beans.Loss;
+
 import org.openl.meta.DoubleValue;
 import org.openl.rules.runtime.RulesEngineFactory;
 
@@ -71,12 +72,21 @@ public class SampleExecution {
 //		OpenLRule rangesList = findRule("/Users/andre/openl-tablets/DT2.xlsx", "getRanges");
 //		System.out.println(rangesList.execute(null).getClass());
 //		
-//		OpenLRule personList = findRule("/Users/andre/openl-tablets/DT2.xlsx", "getPerson3");
-//		Object[] persons = (Object[])personList.execute(null);
-//		for (int i = 0; i < persons.length; i++) {
-//			ValueObject o = new ValueObject(persons[i]);
-//			System.out.println(o.get("name") + ", " + o.get("gender"));
-//		}
+		ValueObject person = new ValueObject();
+		person.setClassName("org.openl.generated.beans.Person")
+			.addField("name", "String")
+			.addField("gender", "String")
+			.addField("ssn", "String")
+			.addField("maritalStatus", "String")
+			.addField("dob", "Date")
+			.build();
+		OpenLRule personList = findRule("/Users/andre/openl-tablets/DT2.xlsx", "getPerson3");
+		Object[] persons = (Object[])personList.execute(null);
+		System.out.println(persons.getClass().getName());
+		for (int i = 0; i < persons.length; i++) {
+			ValueObject o = new ValueObject(persons[i]);
+			System.out.println(o.get("name") + ", " + o.get("gender") + ", " + o.getObject().getClass().getName());
+		}
 //		
 //		OpenLRule customerList = findRule("/Users/andre/openl-tablets/DT2.xlsx", "getCustomers");
 //		Object[] customers = (Object[]) customerList.execute(null);
@@ -159,15 +169,32 @@ public class SampleExecution {
 		System.out.println(m2.invoke(o, null));
 		System.out.println(o);
 		
-		Loss[] losses = new Loss[2];
-		losses[0] = new Loss();
-		losses[1] = new Loss();
-		losses[0].setAmount(1000.0);
-		losses[0].setDate(new Date("01/01/2010"));
-		losses[0].setType("Liability");
-		losses[1].setAmount(500.0);
-		losses[1].setDate(new Date("09/19/1999"));
-		losses[1].setType("Liability");
+		//Loss[] losses = new Loss[2];
+		//Object[] losses = new Object[2];
+		ValueObject loss1 = new ValueObject();
+		loss1.setClassName("org.openl.generated.beans.Loss");
+		loss1.addField("amount", "Double")
+			.addField("date", "Date")
+			.addField("type", "String")
+			.build();
+		ValueObject loss2 = loss1.generateEmptyCopy();
+		loss1.set("amount", 1000.0)
+			.set("date", new Date("01/01/2010"))
+			.set("type", "Liability");
+		loss2.set("amount", 500.0)
+			.set("date", new Date("09/19/1999"))
+			.set("type", "Liability");
+
+		Object array = Array.newInstance(loss1.getObject().getClass(), 2);
+		Object[] losses = (Object[]) array;
+		losses[0] = loss1.getObject();
+		losses[1] = loss2.getObject();
+//		losses[0].setAmount(1000.0);
+//		losses[0].setDate(new Date("01/01/2010"));
+//		losses[0].setType("Liability");
+//		losses[1].setAmount(500.0);
+//		losses[1].setDate(new Date("09/19/1999"));
+//		losses[1].setType("Liability");
 		
 		OpenLRule lossFreeDiscountCalcRule = findRule("/Users/andre/openl-tablets/DT6.xlsx", "LossFreeDiscountCalc");
 		System.out.println(lossFreeDiscountCalcRule.execute(losses, new Date("12/26/2012")));
