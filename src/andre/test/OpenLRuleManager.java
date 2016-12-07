@@ -22,27 +22,50 @@ public class OpenLRuleManager {
 		// TODO - figure out how to handle multiple spreadsheets and naming collision
 		// TODO - clean up exception/error handling across all classes
 		
-		initialize("/Users/andre/openl-tablets/DT4.xlsx");
+//		initialize("/Users/andre/openl-tablets/DT4.xlsx");
 //		initialize("/Users/awiradarma/PlaySheet.xlsx");
 		
 		
 	}
 
+	private String excelfile=null;
+	
+	boolean isInitialized() {
+		if (excelfile == null) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
 	private static ConcurrentHashMap<String,ValueObject> datatypeMap = new ConcurrentHashMap<String, ValueObject>();
 	private static List<String> baseTypes = Arrays.asList("java.lang.String", "java.lang.String[]", "java.lang.Integer", "java.lang.Integer[]"
 			,"java.lang.Double","java.lang.Double[]","java.lang.Boolean","java.lang.Boolean[]"
 			,"java.util.Date","java.util.Date[]");
 
-	public static ValueObject newValueObject(String excelfile, String datatype) {
-		if (datatypeMap.containsKey(excelfile+"::"+datatype)) {
-			return datatypeMap.get(excelfile+"::"+datatype); //.generateEmptyCopy();
+	public ValueObject newValueObject(String datatype) {
+		if (isInitialized()) {
+		if (datatypeMap.containsKey(this.excelfile+"::"+datatype)) {
+			return datatypeMap.get(this.excelfile+"::"+datatype).generateEmptyCopy(); //.generateEmptyCopy();
+		} else {
+			return null;
+		}
 		} else {
 			return null;
 		}
 	}
 
-	public static OpenLRule findRule(String filename, String ruleName) {
-		RulesEngineFactory<?> rulesFactory =  new RulesEngineFactory<Object>(filename);
+	public Class obtainClassDefinition(String datatype) {
+			if (isInitialized()) {
+				return datatypeMap.get(this.excelfile+"::"+datatype).getObject().getClass(); 
+			} else {
+				return null;
+			}
+	}
+
+	public OpenLRule findRule(String ruleName) {
+		if (isInitialized()) {
+		RulesEngineFactory<?> rulesFactory =  new RulesEngineFactory<Object>(this.excelfile);
 		Object ruleFactory = rulesFactory.newInstance();
 		Method ruleMethod = null;
 		Method[] methods = rulesFactory.getInterfaceClass().getDeclaredMethods();
@@ -61,10 +84,14 @@ public class OpenLRuleManager {
 			e.printStackTrace();
 			return null;
 		}
+		} else {
+			return null;
+		}
 }
 
 	
-	public static void initialize(String excelfile) {
+	public OpenLRuleManager(String excelfile) {
+		if (!isInitialized()) {
 		RulesEngineFactory<?> rulesFactory =  new RulesEngineFactory<Object>(excelfile);
 
 		// Generate ValueObject class definitions, build (load into classloader) and store in datatypeMap
@@ -126,14 +153,17 @@ public class OpenLRuleManager {
 			}	
 		}
 		
-		for (Iterator<String> iterator = datatypeMap.keySet().iterator(); iterator.hasNext();) {
-			String type = (String) iterator.next();
-			System.out.println(type + ": " + datatypeMap.get(type));
+//		for (Iterator<String> iterator = datatypeMap.keySet().iterator(); iterator.hasNext();) {
+//			String type = (String) iterator.next();
+//			System.out.println(type + ": " + datatypeMap.get(type));
+//		}
+		this.excelfile = excelfile;
+//		System.out.println("Initialized " + this.excelfile);
+		
 		}
-
 	}
 
-	private static ValueObject build(IOpenClass c) {
+	private ValueObject build(IOpenClass c) {
 		ValueObject dataType = new ValueObject();
 		dataType.setClassName("org.openl.generated.beans." + c.getName());
 

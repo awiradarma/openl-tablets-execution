@@ -21,6 +21,7 @@ public class ValueObject {
 		copy.className = this.className;
 		copy.fields = new HashMap<String, String>();
 		copy.fields.putAll(this.fields);
+		copy.build();
 		return copy;
 	}
 	
