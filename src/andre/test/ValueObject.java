@@ -2,9 +2,11 @@ package andre.test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
+import java.util.Set;
 
 public class ValueObject {
 	
@@ -59,19 +61,19 @@ public class ValueObject {
 	public ValueObject set(String fieldName, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		if (this.generatedObject != null) {
 			//System.out.println("fieldName is " + fieldName + " this object is a " + this.generatedObject.getClass().getName() + " first argument is a " + args[0].getClass().getName());
-			ByteBuddyHelper.invokeMethod(this.generatedObject, "set"+ByteBuddyHelper.capitalize(fieldName), args);
+			invokeMethod(this.generatedObject, "set"+ByteBuddyHelper.capitalize(fieldName), args);
 		}
 		return this;
 	}
 
 	public Object get(String fieldName) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		if (this.generatedObject != null) {
-			return ByteBuddyHelper.invokeMethod(this.generatedObject, "get" + ByteBuddyHelper.capitalize(fieldName), null);
+			return invokeMethod(this.generatedObject, "get" + ByteBuddyHelper.capitalize(fieldName), null);
 		}
 		return null;
 	}
 	
-	public Object getObject() {
+	public Object getWrappedObject() {
 		if (this.generatedObject != null) {
 			return this.generatedObject;
 		} else {
@@ -85,5 +87,45 @@ public class ValueObject {
 		} else {
 			return "";
 		}
+	}
+	
+	private Object invokeMethod(Object o, String methodName, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Method m = findMethod(o, methodName);		
+//		System.out.println(o.getClass().getName());
+//		Parameter[] p = m.getParameters();
+//		for (int i = 0; i < p.length; i++) {
+//			Parameter parameter = p[i];
+//			System.out.println(parameter.getType().getName());
+//		}
+		return m.invoke(o, args);
+	}
+
+	private Method findMethod(Object o, String methodName) {
+		Method[] methods = o.getClass().getDeclaredMethods();
+		for (int i = 0; i < methods.length; i++) {
+			Method method = methods[i];
+			//System.out.println(method.getName());
+			if (method.getName().equalsIgnoreCase(methodName)) return method;
+		}
+		return null;
+	}
+
+	public HashMap<String, String> getFields() {
+		return this.fields;
+	}
+	
+	public List<String> getFieldNames() {
+		ArrayList<String> fieldNames = new ArrayList<String>();
+		fieldNames.addAll(fields.keySet());
+		return fieldNames;
+	}
+	
+	public static ValueObject[] generateValueObjectArray(Object[] objArray) {
+		ValueObject[] outputArray = new ValueObject[objArray.length];
+		for (int i = 0; i < outputArray.length; i++) {
+			outputArray[i] = new ValueObject(objArray[i]);
+		}
+		return outputArray;
+
 	}
 }

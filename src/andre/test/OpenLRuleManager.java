@@ -1,5 +1,6 @@
 package andre.test;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,22 +13,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.openl.rules.runtime.RulesEngineFactory;
 import org.openl.types.IOpenClass;
 import org.openl.types.IOpenField;
+import org.openl.types.impl.DomainOpenClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OpenLRuleManager {
 
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		// TODO - change to instance based
-		// TODO - validate and refactor to make the code thread safe
-		// TODO - figure out how to handle multiple spreadsheets and naming collision
-		// TODO - clean up exception/error handling across all classes
+	// TODO - validate and refactor to make the code thread safe
+	// TODO - figure out how to handle multiple spreadsheets and naming collision
+	// TODO - clean up exception/error handling across all classes
+	// TODO - clean up logging level across all classes
 		
-//		initialize("/Users/andre/openl-tablets/DT4.xlsx");
-//		initialize("/Users/awiradarma/PlaySheet.xlsx");
-		
-		
-	}
-
+	private final Logger logger = LoggerFactory.getLogger(OpenLRuleManager.class);
+	
 	private String excelfile=null;
 	
 	boolean isInitialized() {
@@ -38,29 +36,48 @@ public class OpenLRuleManager {
 		}
 	}
 	
+	// datatypeMap stores the generated Datatypes - which also includes alias datatypes 
 	private static ConcurrentHashMap<String,ValueObject> datatypeMap = new ConcurrentHashMap<String, ValueObject>();
-	private static List<String> baseTypes = Arrays.asList("java.lang.String", "java.lang.String[]", "java.lang.Integer", "java.lang.Integer[]"
+	
+	// map of alias datatype and its corresponding base type
+	private static ConcurrentHashMap<String, String> aliasTypeMap = new ConcurrentHashMap<String, String>();
+	
+	// list of supported base types
+	final static List<String> baseTypes = Arrays.asList("java.lang.String", "java.lang.String[]", "java.lang.Integer", "java.lang.Integer[]"
 			,"java.lang.Double","java.lang.Double[]","java.lang.Boolean","java.lang.Boolean[]"
 			,"java.util.Date","java.util.Date[]");
 
+	// provides a new valueobject based on the specified datatype (if it's been defined and loaded properly)
 	public ValueObject newValueObject(String datatype) {
 		if (isInitialized()) {
-		if (datatypeMap.containsKey(this.excelfile+"::"+datatype)) {
-			return datatypeMap.get(this.excelfile+"::"+datatype).generateEmptyCopy(); //.generateEmptyCopy();
-		} else {
-			return null;
+			if (datatypeMap.containsKey(this.excelfile+"::"+datatype)) {
+				return datatypeMap.get(this.excelfile+"::"+datatype).generateEmptyCopy(); 
+			} 
 		}
-		} else {
-			return null;
-		}
+		return null;
 	}
 
+	public ValueObject[] newValueObjectArrayOf(String datatype, int size) {
+		if (isInitialized()) {
+			if (datatypeMap.containsKey(this.excelfile+"::"+datatype)) {
+				ValueObject[] vos = new ValueObject[size]; 
+				for (int i = 0; i < vos.length; i++) {
+					vos[i] = datatypeMap.get(this.excelfile+"::"+datatype).generateEmptyCopy();
+				}
+				return vos;
+			}
+		} 
+		return null;
+	}
+	
+	// returns the class definition of the specified datatype, needed to convert JSON string to the datatype 
 	public Class obtainClassDefinition(String datatype) {
 			if (isInitialized()) {
-				return datatypeMap.get(this.excelfile+"::"+datatype).getObject().getClass(); 
-			} else {
-				return null;
-			}
+				if (datatypeMap.containsKey(this.excelfile+"::"+datatype)) {
+					return datatypeMap.get(this.excelfile+"::"+datatype).getWrappedObject().getClass(); 
+				}
+			} 
+			return null;
 	}
 
 	public OpenLRule findRule(String ruleName) {
@@ -102,28 +119,61 @@ public class OpenLRuleManager {
 		LinkedHashMap<String, ArrayList<String>> complexDataTypes = new LinkedHashMap <String, ArrayList<String>>();
 		for (Iterator<String> iterator = map.keySet().iterator(); iterator.hasNext();) {
 			Boolean isPrimitiveOnly = true;
+			Boolean isDomainType = false;
 			String type = iterator.next();
-			// System.out.println("DEBUG -- map entry is " + type);
+			logger.debug("map entry is " + type);
 			IOpenClass c = map.get(type);
 			ArrayList<String> usedComplexTypes = new ArrayList<String>();
 			
-			// Check to see if the Datatype uses non base field types
-			Map<String, IOpenField> fields = c.getDeclaredFields();
-			for (Iterator<String> iterator2 = fields.keySet().iterator(); iterator2.hasNext();) {
-				String fieldName = (String) iterator2.next();
-				String fieldType = fields.get(fieldName).getType().toString();
-				if (!baseTypes.contains(fields.get(fieldName).getType().toString())) {
-					isPrimitiveOnly = false;
-					usedComplexTypes.add(fieldType);
+			String classTypeName = c.getClass().getName();
+			logger.debug(type + " is " + c.getClass().getName());
+			
+			if (classTypeName.equalsIgnoreCase("org.openl.types.impl.DomainOpenClass")) { 
+				// A domain type example is the Gender datatype in Tutorial #2, 
+				// where it's basically an alias to a String value with the domain value of Male or Female
+				DomainOpenClass d = (DomainOpenClass) c;
+				String domainClassType = d.getInstanceClass().getName();
+				if (baseTypes.contains(domainClassType)) { // Check to see if it's based off a base/primitive type
+					aliasTypeMap.put(c.getName(), domainClassType);
+					logger.debug("Storing " +c.getName() + " as " + domainClassType);
+					isDomainType = true;
+				} else { // Not sure what to do in the case of complex domain value, need sample use case to investigate if such thing exists
+					logger.debug("A domain class that is not a base type, don't know what to do with " + type);
 				}
+				logger.debug(d.getInstanceClass().getName());
+				logger.debug(d.getDomain().toString());
+			} else if (classTypeName.equalsIgnoreCase("org.openl.rules.lang.xls.types.DatatypeOpenClass")) {
+				// Check to see if the Datatype uses non primitive/base types
+				Map<String, IOpenField> fields = c.getDeclaredFields();
+				for (Iterator<String> iterator2 = fields.keySet().iterator(); iterator2.hasNext();) {
+					String fieldName = (String) iterator2.next();
+					String fieldType = fields.get(fieldName).getType().toString();
+					logger.debug("fieldName: " + fieldName + " fieldType: " + fieldType);
+					if (!baseTypes.contains(fields.get(fieldName).getType().toString()) && !aliasTypeMap.containsKey(fields.get(fieldName).getType().toString()) ) {
+						isPrimitiveOnly = false;
+						usedComplexTypes.add(fieldType);
+					}
+				}				
+			} else {
+				logger.error("Don't know what to do with " + type + " which is a " + classTypeName);
 			}
-			if (isPrimitiveOnly) {
-				// System.out.println("DEBUG -- " + c.getName() + " uses only base types, building now ");
+
+			
+			if (isPrimitiveOnly && !isDomainType) {
+				logger.debug(c.getName() + " uses only base types, building now ");
 				datatypeMap.put(excelfile+"::"+c.getName(), build(c));
 				built++;
-			} else {
-				// System.out.println("DEBUG -- " + c.getName() + " uses complex types, to be processed later ");
+			} else if (!isDomainType) {
+				logger.debug(c.getName() + " uses complex types, to be processed later ");
 				complexDataTypes.put(c.getName(), usedComplexTypes);
+			} else {
+				if (isDomainType) {
+					logger.debug("A domain value type : " + c.getName() );
+					datatypeMap.put(excelfile+"::"+c.getName(), new ValueObject()); // just put an entry in the datatypeMap to mark is as 'resolved'
+					built++;
+				} else {
+					logger.error("Do not expect to see this, not sure what to do with " + c.getName());
+				}
 			}
 		}
 	
@@ -143,22 +193,23 @@ public class OpenLRuleManager {
 						}
 					}
 					if (allDependenciesResolved) {
-						//System.out.println("DEBUG -- building " + typeName);						
+						logger.debug("building " + typeName);						
 						datatypeMap.put(excelfile+"::"+typeName, build(map.get("org.openl.this::"+typeName)));
 						built++;
 					} else {
-						//System.out.println("DEBUG -- postponing the build of " + typeName);
+						logger.debug("postponing the build of " + typeName);
 					}
 				}
-			}	
+			}
+			loop++;
 		}
 		
-//		for (Iterator<String> iterator = datatypeMap.keySet().iterator(); iterator.hasNext();) {
-//			String type = (String) iterator.next();
-//			System.out.println(type + ": " + datatypeMap.get(type));
-//		}
+		for (Iterator<String> iterator = datatypeMap.keySet().iterator(); iterator.hasNext();) {
+			String type = (String) iterator.next();
+			logger.debug(type + ": " + datatypeMap.get(type));
+		}
 		this.excelfile = excelfile;
-//		System.out.println("Initialized " + this.excelfile);
+		logger.debug("Initialized " + this.excelfile);
 		
 		}
 	}
@@ -172,7 +223,11 @@ public class OpenLRuleManager {
 			String fieldName = (String) iterator2.next();
 			String fieldTypeName = fields.get(fieldName).getType().toString();
 			if (!baseTypes.contains(fieldTypeName)) {
-				fieldTypeName = "org.openl.generated.beans." + fieldTypeName;
+				if (aliasTypeMap.containsKey(fieldTypeName)) {
+					fieldTypeName = aliasTypeMap.get(fieldTypeName);
+				} else {
+					fieldTypeName = "org.openl.generated.beans." + fieldTypeName;					
+				}
 			}
 			dataType.addField(fieldName, fieldTypeName);
 		}

@@ -49,13 +49,14 @@ public class ValueObjectExample {
 		.addField("employeeID", "Integer")
 		.build();
 		
-		o1.set("person", o.getObject());
+		o1.set("person", o.getWrappedObject());
 		o1.set("employeeID", 12);
 				
 		ValueObject o2 = new ValueObject(o1.get("person"));
 		System.out.println("Employee #" + o1.get("employeeID") + " name is " +o2.get("name"));
 		
 		System.out.println(o1);
+		System.out.println(o2.getFields());
 	}
 
 }
