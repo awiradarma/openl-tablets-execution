@@ -71,7 +71,7 @@ public class OpenLRuleManager {
 	}
 	
 	// returns the class definition of the specified datatype, needed to convert JSON string to the datatype 
-	public Class obtainClassDefinition(String datatype) {
+	public Class<?> obtainClassDefinition(String datatype) {
 			if (isInitialized()) {
 				if (datatypeMap.containsKey(this.excelfile+"::"+datatype)) {
 					return datatypeMap.get(this.excelfile+"::"+datatype).getWrappedObject().getClass(); 
@@ -80,6 +80,42 @@ public class OpenLRuleManager {
 			return null;
 	}
 
+	public ArrayList<String> listRules() {
+		if (isInitialized()) {
+			RulesEngineFactory<?> rulesFactory =  new RulesEngineFactory<Object>(this.excelfile);
+			ArrayList<String> result = new ArrayList<String> ();
+			Method[] methods = rulesFactory.getInterfaceClass().getDeclaredMethods();
+			for (int i = 0; i < methods.length; i++) {
+				result.add(methods[i].getName());
+			}
+			return result;
+		} else {
+			return null;
+		}
+	}
+	
+	public Map<String, Object> listDatatypes() {
+		if (isInitialized()) {
+			ConcurrentHashMap <String, Object> result = new ConcurrentHashMap<String, Object>();
+			for (Iterator<String> iterator = datatypeMap.keySet().iterator(); iterator.hasNext();) {
+				String string = iterator.next();
+				String[] s = string.split("::");
+				String datatypeName = s[1];
+				if (aliasTypeMap.containsKey(datatypeName)) {
+					result.put(datatypeName, aliasTypeMap.get(datatypeName));
+				} else {
+					ValueObject o = datatypeMap.get(string);
+					result.put(o.getWrappedObject().getClass().getName(), o.getFields());
+					//result.put(datatypeName, o.getFields());
+				}
+			}
+			//result.putAll(datatypeMap);
+			return result;
+		} else {
+			return null;
+		}
+	}
+	
 	public OpenLRule findRule(String ruleName) {
 		if (isInitialized()) {
 		RulesEngineFactory<?> rulesFactory =  new RulesEngineFactory<Object>(this.excelfile);
@@ -110,6 +146,7 @@ public class OpenLRuleManager {
 	public OpenLRuleManager(String excelfile) {
 		if (!isInitialized()) {
 		RulesEngineFactory<?> rulesFactory =  new RulesEngineFactory<Object>(excelfile);
+		rulesFactory.setExecutionMode(true);
 
 		// Generate ValueObject class definitions, build (load into classloader) and store in datatypeMap
 		Map<String, IOpenClass> map = rulesFactory.getCompiledOpenClass().getTypes();
